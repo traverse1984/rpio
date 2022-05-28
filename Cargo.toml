@@ -4,4 +4,5 @@ members = [
    "rpio-gpio",
    "rpio-spi",
    "rpio-dev",
+   "rpio-flash",
 ]
