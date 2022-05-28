@@ -9,9 +9,11 @@ edition = "2021"
 rpio-gpio = { path = "../rpio-gpio" }
 rpio-dev = { path = "../rpio-dev", optional = true }
 rpio-spi = { path = "../rpio-spi", optional = true, features = ["hal"] }
+rpio-flash = { path = "../rpio-flash", optional = true }
 
 [features]
 default = ["devices"]
 rp2040 = ["rpio-gpio/rp2040", "rpio-spi/rp2040"]
 devices = ["rpio-dev"]
 spi = ["rpio-spi"]
+flash = ["rpio-flash"]
