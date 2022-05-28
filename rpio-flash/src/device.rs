@@ -18,7 +18,7 @@ fn spi_to_flash_error(err: SpiError) -> Error {
 #[derive(Debug)]
 pub struct Device<SPI: SpiDevice, B: FlashBuffer> {
     spi: SPI,
-    buf: B,
+    pub buf: B,
 }
 
 impl<SPI: SpiDevice, B: FlashBuffer> Device<SPI, B> {
@@ -26,17 +26,17 @@ impl<SPI: SpiDevice, B: FlashBuffer> Device<SPI, B> {
         Self { spi, buf }
     }
 
-    fn transfer_op(&mut self, data_len: usize) -> Result<&[u8]> {
+    pub fn transfer_op(&mut self, data_len: usize) -> Result<&[u8]> {
         let buf = self.buf.op(data_len);
         self.spi.transfer(buf).map_err(spi_to_flash_error)
     }
 
-    fn transfer_op_addr(&mut self, data_len: usize) -> Result<&[u8]> {
+    pub fn transfer_op_addr(&mut self, data_len: usize) -> Result<&[u8]> {
         let buf = self.buf.op_addr(data_len);
         self.spi.transfer(buf).map_err(spi_to_flash_error)
     }
 
-    fn transfer_highspeed_read(&mut self, data_len: usize) -> Result<&[u8]> {
+    pub fn transfer_highspeed_read(&mut self, data_len: usize) -> Result<&[u8]> {
         let buf = self.buf.highspeed_read(data_len);
         self.spi.transfer(buf).map_err(spi_to_flash_error)
     }
