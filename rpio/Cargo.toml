@@ -1,0 +1,16 @@
+[package]
+name = "rpio"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rpio-gpio = { path = "../rpio-gpio" }
+rpio-dev = { path = "../rpio-dev", optional = true }
+rpio-spi = { path = "../rpio-spi", optional = true }
+
+[features]
+default = ["rp2040", "devices"]
+rp2040 = ["rpio-gpio/rp2040"]
+devices = ["rpio-dev"]

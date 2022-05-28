@@ -1,0 +1,7 @@
+[workspace]
+members = [
+   "rpio",
+   "rpio-gpio",
+   "rpio-spi",
+   "rpio-dev",
+]
