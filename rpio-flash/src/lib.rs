@@ -1,3 +1,5 @@
+#![no_std]
+
 mod buffer;
 mod device;
 mod error;
