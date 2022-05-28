@@ -1,19 +1,9 @@
 use super::buffer::*;
 use super::error::Error;
-use super::opcode::Opcode;
+use super::op::{Code, Type};
 use rpio_spi::{Error as SpiError, SpiDevice, Transfer};
 
 pub type Result<T = ()> = core::result::Result<T, Error>;
-
-fn spi_to_flash_error(err: SpiError) -> Error {
-    match err {
-        SpiError::Transfer => Error::SPITransfer,
-        SpiError::ChipSelect => Error::SPIChipSelect,
-        SpiError::ChipDeselect => Error::SPIChipDeselect,
-        SpiError::ClockSpeed => Error::SPISetClockSpeed,
-        SpiError::NotImplemented => panic!("SpiDevice feature not implemented."),
-    }
-}
 
 #[derive(Debug)]
 pub struct Device<SPI: SpiDevice, B: FlashBuffer> {
@@ -26,27 +16,24 @@ impl<SPI: SpiDevice, B: FlashBuffer> Device<SPI, B> {
         Self { spi, buf }
     }
 
-    pub fn transfer_op(&mut self, data_len: usize) -> Result<&[u8]> {
-        let buf = self.buf.op(data_len);
-        self.spi.transfer(buf).map_err(spi_to_flash_error)?;
-        Ok(&self.buf.data()[..data_len])
-    }
+    pub fn send(&mut self, op: Type, data_len: usize) -> Result {
+        let buf = self.buf.op(op, data_len);
 
-    pub fn transfer_op_addr(&mut self, data_len: usize) -> Result<&[u8]> {
-        let buf = self.buf.op_addr(data_len);
-        self.spi.transfer(buf).map_err(spi_to_flash_error)?;
-        Ok(&self.buf.data()[..data_len])
-    }
+        self.spi.transfer(buf).map_err(|err| match err {
+            SpiError::Transfer => Error::SPITransfer,
+            SpiError::ChipSelect => Error::SPIChipSelect,
+            SpiError::ChipDeselect => Error::SPIChipDeselect,
+            SpiError::ClockSpeed => Error::SPISetClockSpeed,
+            SpiError::NotImplemented => unreachable!(),
+        })?;
 
-    pub fn transfer_highspeed_read(&mut self, data_len: usize) -> Result<&[u8]> {
-        let buf = self.buf.highspeed_read(data_len);
-        self.spi.transfer(buf).map_err(spi_to_flash_error)?;
-        Ok(&self.buf.data()[..data_len])
+        Ok(())
     }
 
     pub fn read_status(&mut self) -> Result<u8> {
-        self.buf.set_op(Opcode::ReadStatus);
-        self.transfer_op(1).map(|buf| buf[0])
+        self.buf.set_op(Code::ReadStatus);
+        self.send(Type::Op, 1)?;
+        Ok(*self.buf.get(0))
     }
 }
 

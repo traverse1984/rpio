@@ -3,7 +3,7 @@
 mod buffer;
 mod device;
 mod error;
-mod opcode;
+mod op;
 
 pub use buffer::*;
 pub use device::*;

@@ -1,4 +1,17 @@
-pub enum Opcode {
+#[repr(usize)]
+pub enum Type {
+    Op = 4,
+    OpAddr = 1,
+    ReadHighspeed = 0,
+}
+
+impl Type {
+    pub fn to_offset(self) -> usize {
+        self as usize
+    }
+}
+
+pub enum Code {
     Read = 0x03,
     ReadStatus = 0x05,
     ReadHighspeed = 0x0B,
@@ -18,14 +31,8 @@ pub enum Opcode {
     BusyStatusOutputDisable = 0x80,
 }
 
-impl Opcode {
+impl Code {
     pub fn to_instruction(self) -> u8 {
-        self as u8
-    }
-}
-
-impl Into<u8> for Opcode {
-    fn into(self) -> u8 {
         self as u8
     }
 }

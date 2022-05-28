@@ -1,11 +1,11 @@
-use super::opcode::Opcode;
+use super::op::{Code, Type};
 
 pub trait FlashBuffer {
     /// Get the size of the storage element of the buffer
     fn len(&self) -> usize;
 
     /// Return the number of bytes of data copied
-    fn write(&mut self, data: &[u8]) -> usize;
+    fn write_data(&mut self, data: &[u8]) -> usize;
 
     /// Get a single byte, unchecked
     fn get(&self, index: usize) -> &u8;
@@ -20,16 +20,16 @@ pub trait FlashBuffer {
     fn data_mut(&mut self) -> &mut [u8];
 
     /// Set an operation-only flag and return a slice
-    fn set_op(&mut self, op: Opcode);
-    fn op(&mut self, data_len: usize) -> &mut [u8];
+    fn set_op(&mut self, op: Code) -> &mut Self;
 
     /// Set an op+addr instruction and return a slice
-    fn set_op_addr(&mut self, op: Opcode, addr: u32);
-    fn op_addr(&mut self, data_len: usize) -> &mut [u8];
+    fn set_op_addr(&mut self, op: Code, addr: u32) -> &mut Self;
 
     /// Set the highspeed instruction and return a slice
-    fn set_highspeed_read(&mut self, addr: u32);
-    fn highspeed_read(&mut self, data_len: usize) -> &mut [u8];
+    fn set_read_highspeed(&mut self, addr: u32) -> &mut Self;
+
+    /// Slice the correct buffer for an operation
+    fn op(&mut self, op: Type, data_len: usize) -> &mut [u8];
 }
 
 // Can probably be generic
@@ -56,32 +56,23 @@ impl<const LEN: usize> FlashBuffer for Buffer<LEN> {
         LEN - 5
     }
 
-    fn set_op(&mut self, op: Opcode) {
+    fn set_op(&mut self, op: Code) -> &mut Self {
         self.buf[4] = op.to_instruction();
+        self
     }
 
-    fn op(&mut self, data_len: usize) -> &mut [u8] {
-        &mut self.buf[4..data_len + 5]
-    }
-
-    fn set_op_addr(&mut self, op: Opcode, addr: u32) {
+    fn set_op_addr(&mut self, op: Code, addr: u32) -> &mut Self {
         let addr_space = &mut self.buf[1..5];
         addr_space.copy_from_slice(&addr.to_be_bytes());
         self.buf[1] = op.to_instruction();
+        self
     }
 
-    fn op_addr(&mut self, data_len: usize) -> &mut [u8] {
-        &mut self.buf[1..data_len + 5]
-    }
-
-    fn set_highspeed_read(&mut self, addr: u32) {
+    fn set_read_highspeed(&mut self, addr: u32) -> &mut Self {
         let addr_space = &mut self.buf[..4];
         addr_space.copy_from_slice(&addr.to_be_bytes());
-        self.buf[0] = Opcode::ReadHighspeed.to_instruction();
-    }
-
-    fn highspeed_read(&mut self, data_len: usize) -> &mut [u8] {
-        &mut self.buf[..data_len + 5]
+        self.buf[0] = Code::ReadHighspeed.to_instruction();
+        self
     }
 
     fn get(&self, index: usize) -> &u8 {
@@ -100,7 +91,11 @@ impl<const LEN: usize> FlashBuffer for Buffer<LEN> {
         &mut self.buf[5..]
     }
 
-    fn write(&mut self, data: &[u8]) -> usize {
+    fn op(&mut self, op: Type, data_len: usize) -> &mut [u8] {
+        &mut self.buf[op.to_offset()..data_len + 5]
+    }
+
+    fn write_data(&mut self, data: &[u8]) -> usize {
         let copy = self.len().min(data.len());
         (&mut self.buf[5..copy + 5]).copy_from_slice(&data[..copy]);
         copy
@@ -108,7 +103,7 @@ impl<const LEN: usize> FlashBuffer for Buffer<LEN> {
 }
 
 mod tests {
-    use super::{Buffer, FlashBuffer, Opcode};
+    use super::{Buffer, Code, FlashBuffer, Type};
 
     #[test]
     fn data() {
@@ -116,27 +111,30 @@ mod tests {
 
         assert_eq!(buf.len(), 4);
 
-        assert_eq!(buf.write(&[1, 2, 3, 4]), 4);
+        assert_eq!(buf.write_data(&[1, 2, 3, 4]), 4);
         assert_eq!(buf.data(), &[1, 2, 3, 4]);
 
-        buf.set_op(Opcode::WriteByte);
-        assert_eq!(buf.op(4), [Opcode::WriteByte.to_instruction(), 1, 2, 3, 4]);
-
-        buf.set_op_addr(Opcode::Read, 0x00123456);
+        buf.set_op(Code::WriteByte);
         assert_eq!(
-            buf.op_addr(4),
-            &[Opcode::Read.to_instruction(), 0x12, 0x34, 0x56, 1, 2, 3, 4]
+            buf.op(Type::Op, 4),
+            [Code::WriteByte.to_instruction(), 1, 2, 3, 4]
         );
 
-        buf.set_highspeed_read(0x00ABCDEF);
-        let hs_read = Opcode::ReadHighspeed.to_instruction();
+        buf.set_op_addr(Code::Read, 0x00123456);
         assert_eq!(
-            buf.highspeed_read(4),
+            buf.op(Type::OpAddr, 4),
+            &[Code::Read.to_instruction(), 0x12, 0x34, 0x56, 1, 2, 3, 4]
+        );
+
+        buf.set_read_highspeed(0x00ABCDEF);
+        let hs_read = Code::ReadHighspeed.to_instruction();
+        assert_eq!(
+            buf.op(Type::ReadHighspeed, 4),
             &[hs_read, 0xAB, 0xCD, 0xEF, 0x56, 1, 2, 3, 4]
         );
 
         let countdown: [u8; 8] = [8, 7, 6, 5, 4, 3, 2, 1];
-        assert_eq!(buf.write(&countdown), 4);
+        assert_eq!(buf.write_data(&countdown), 4);
         assert_eq!(buf.data(), &[8, 7, 6, 5]);
 
         *buf.get_mut(0) = 9;
