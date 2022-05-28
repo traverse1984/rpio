@@ -6,18 +6,10 @@ macro_rules! impl_cs_common {
 
         fn select(&mut self) -> Result {
             self.cs.set_low().or(Err(Error::ChipSelect))
-            // match self.polarity {
-            //     Polarity::IdleHigh => self.cs.set_low(),
-            //     Polarity::IdleLow => self.cs.set_high(),
-            // }
         }
 
         fn deselect(&mut self) -> Result {
             self.cs.set_high().or(Err(Error::ChipDeselect))
-            // match self.polarity {
-            //     Polarity::IdleHigh => self.cs.set_high(),
-            //     Polarity::IdleLow => self.cs.set_low(),
-            // }
         }
     };
 }

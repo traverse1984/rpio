@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+embedded-hal = { version = "0.2.7", features = ["unproven"] }
 rp2040-hal = { package = "rp2040-hal", version = "0.3.0", optional = true }
 
 [features]
