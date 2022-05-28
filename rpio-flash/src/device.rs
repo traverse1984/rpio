@@ -28,17 +28,20 @@ impl<SPI: SpiDevice, B: FlashBuffer> Device<SPI, B> {
 
     pub fn transfer_op(&mut self, data_len: usize) -> Result<&[u8]> {
         let buf = self.buf.op(data_len);
-        self.spi.transfer(buf).map_err(spi_to_flash_error)
+        self.spi.transfer(buf).map_err(spi_to_flash_error)?;
+        Ok(&self.buf.data()[..data_len])
     }
 
     pub fn transfer_op_addr(&mut self, data_len: usize) -> Result<&[u8]> {
         let buf = self.buf.op_addr(data_len);
-        self.spi.transfer(buf).map_err(spi_to_flash_error)
+        self.spi.transfer(buf).map_err(spi_to_flash_error)?;
+        Ok(&self.buf.data()[..data_len])
     }
 
     pub fn transfer_highspeed_read(&mut self, data_len: usize) -> Result<&[u8]> {
         let buf = self.buf.highspeed_read(data_len);
-        self.spi.transfer(buf).map_err(spi_to_flash_error)
+        self.spi.transfer(buf).map_err(spi_to_flash_error)?;
+        Ok(&self.buf.data()[..data_len])
     }
 
     pub fn read_status(&mut self) -> Result<u8> {
