@@ -8,9 +8,10 @@ edition = "2021"
 [dependencies]
 rpio-gpio = { path = "../rpio-gpio" }
 rpio-dev = { path = "../rpio-dev", optional = true }
-rpio-spi = { path = "../rpio-spi", optional = true }
+rpio-spi = { path = "../rpio-spi", optional = true, features = ["hal"] }
 
 [features]
-default = ["rp2040", "devices"]
-rp2040 = ["rpio-gpio/rp2040"]
+default = ["devices"]
+rp2040 = ["rpio-gpio/rp2040", "rpio-spi/rp2040"]
 devices = ["rpio-dev"]
+spi = ["rpio-spi"]

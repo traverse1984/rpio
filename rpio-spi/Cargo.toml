@@ -6,3 +6,14 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+embedded-hal = "0.2.7"
+_rppal = { package = "rppal", version = "0.13.1", features = ["hal"], optional = true }
+rp2040-hal = { package = "rp2040-hal", version = "0.3.0", optional = true }
+embedded-time = { package = "embedded-time", version = "0.12.1", optional = true }
+
+[features]
+default = []
+std = []
+hal = []
+rp2040 = ["rp2040-hal", "embedded-time"]
+rppal = ["std", "_rppal"]
