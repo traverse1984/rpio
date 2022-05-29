@@ -4,6 +4,7 @@ mod buffer;
 mod device;
 mod error;
 mod op;
+mod size;
 mod status;
 
 pub use buffer::*;

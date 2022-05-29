@@ -3,6 +3,7 @@ use core::fmt::LowerHex;
 use super::buffer::*;
 use super::error::Error;
 use super::op::{Code, Type};
+use super::size::Size;
 use super::status::Status;
 use rpio_spi::{Error as SpiError, SpiDevice, Transfer};
 
@@ -12,11 +13,18 @@ pub type Result<T = ()> = core::result::Result<T, Error>;
 pub struct Device<SPI: SpiDevice, B: FlashBuffer> {
     spi: SPI,
     pub buf: B,
+    size: Size,
+    block_protect: u8,
 }
 
 impl<SPI: SpiDevice, B: FlashBuffer> Device<SPI, B> {
-    pub fn new(spi: SPI, buf: B) -> Self {
-        Self { spi, buf }
+    pub fn new(spi: SPI, size: Size, buf: B) -> Self {
+        Self {
+            spi,
+            size,
+            buf,
+            block_protect: 0xF,
+        }
     }
 
     pub fn send(&mut self, op: Type, data_len: usize) -> Result {
@@ -42,6 +50,42 @@ impl<SPI: SpiDevice, B: FlashBuffer> Device<SPI, B> {
     pub fn write_enable(&mut self) -> Result {
         self.buf.set_op(Code::WriteEnable);
         self.send(Type::Op, 0)
+    }
+
+    pub fn write_status_enable(&mut self) -> Result {
+        self.write_enable()?;
+        self.buf.set_op(Code::WriteStatusEnable);
+        self.send(Type::Op, 0)
+    }
+
+    pub fn write_block_protect_bits(&mut self, bp_bits: u8) -> Result {
+        let bp_bits = (bp_bits & 0xF) << 2;
+
+        self.write_status_enable()?;
+        self.buf.set_op(Code::WriteStatus);
+        *self.buf.get_mut(0) = bp_bits;
+        self.send(Type::Op, 1)
+    }
+
+    pub fn write_byte(&mut self, addr: u32, byte: u8) -> Result {
+        self.wait_ready()?;
+        self.write_enable()?;
+
+        self.buf.set_op_addr(Code::WriteByte, addr);
+        *self.buf.get_mut(0) = byte;
+
+        self.send(Type::OpAddr, 1)
+    }
+
+    pub fn read(&mut self, addr: u32, len: usize) -> Result<&[u8]> {
+        self.buf.set_op_addr(Code::Read, addr);
+        self.send(Type::OpAddr, len)?;
+        Ok(&self.buf.data()[..len])
+    }
+
+    fn wait_ready(&mut self) -> Result {
+        while self.read_status()?.is_busy() {}
+        Ok(())
     }
 }
 
