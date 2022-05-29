@@ -1,6 +1,9 @@
+use core::fmt::LowerHex;
+
 use super::buffer::*;
 use super::error::Error;
 use super::op::{Code, Type};
+use super::status::Status;
 use rpio_spi::{Error as SpiError, SpiDevice, Transfer};
 
 pub type Result<T = ()> = core::result::Result<T, Error>;
@@ -30,10 +33,15 @@ impl<SPI: SpiDevice, B: FlashBuffer> Device<SPI, B> {
         Ok(())
     }
 
-    pub fn read_status(&mut self) -> Result<u8> {
+    pub fn read_status(&mut self) -> Result<Status> {
         self.buf.set_op(Code::ReadStatus);
         self.send(Type::Op, 1)?;
-        Ok(*self.buf.get(0))
+        Ok(Status::from(*self.buf.get(0)))
+    }
+
+    pub fn write_enable(&mut self) -> Result {
+        self.buf.set_op(Code::WriteEnable);
+        self.send(Type::Op, 0)
     }
 }
 
