@@ -10,3 +10,6 @@ mod status;
 pub use buffer::*;
 pub use device::*;
 pub use error::*;
+pub use op::*;
+pub use size::*;
+pub use status::*;
