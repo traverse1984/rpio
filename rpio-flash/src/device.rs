@@ -83,7 +83,7 @@ impl<SPI: SpiDevice, B: FlashBuffer> Device<SPI, B> {
         Ok(&self.buf.data()[..len])
     }
 
-    fn wait_ready(&mut self) -> Result {
+    pub fn wait_ready(&mut self) -> Result {
         while self.read_status()?.is_busy() {}
         Ok(())
     }
