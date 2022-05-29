@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 embedded-hal = { version = "0.2.7", features = ["unproven"] }
 rpio-gpio = { path = "../rpio-gpio" }
+rpio-spi = { path = "../rpio-spi" }
 
 [features]
 default = []

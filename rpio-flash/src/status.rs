@@ -26,9 +26,7 @@ impl Status {
 }
 
 mod tests {
-    extern crate std;
     use super::{Size, Status};
-    use std::println;
 
     #[test]
     fn status() {
