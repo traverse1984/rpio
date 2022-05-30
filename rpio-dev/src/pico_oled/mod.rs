@@ -12,3 +12,5 @@ pub use print::*;
 pub use scaled::ScaledBuf;
 pub use screen::Screen;
 pub use types::*;
+
+pub use core::fmt::Write;

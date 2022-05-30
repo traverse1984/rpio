@@ -98,6 +98,10 @@ impl<D: Display, B: Draw<u8> + FrameBuffer<ScanOut = u128>> Screen<D, B> {
 
         self
     }
+
+    pub fn destroy(self) -> (D, B) {
+        (self.display, self.buf)
+    }
 }
 
 impl<D: Display, B: Draw<u8> + FrameBuffer<ScanOut = u128>> fmt::Write for Screen<D, B> {
@@ -109,11 +113,31 @@ impl<D: Display, B: Draw<u8> + FrameBuffer<ScanOut = u128>> fmt::Write for Scree
 
 #[macro_export]
 macro_rules! screen {
+    // ($spi: expr, $dcmd: expr, $buf: expr) => {{
+    //     let mut oled = rpio::dev::pico_oled::PicoOled::new($spi, $dcmd);
+    //     oled.init();
+    //     rpio::dev::pico_oled::Screen::new(oled, $buf)
+    // }};
+
+    // ($spi: expr, $dcmd: expr) => {{
+    //     let buf = rpio::dev::pico_oled::FrameBuf::new();
+    //     rpio::dev::screen!($spi, $dcmd, buf)
+    // }};
+    ($oled: expr, $buf: expr) => {{
+        rpio::dev::pico_oled::Screen::new($oled, $buf)
+    }};
+
     ($oled: expr) => {{
-        //let oled = $crate::PicoOled::new($spi, $dcmd);
         let buf = rpio::dev::pico_oled::FrameBuf::new();
         rpio::dev::pico_oled::Screen::new($oled, buf)
     }};
+}
+
+#[macro_export]
+macro_rules! use_screen {
+    ($screen: expr) => {
+        rpio::__use_screen!(($) $screen)
+    };
 }
 
 #[macro_export]
@@ -121,47 +145,65 @@ macro_rules! __use_screen {
     (($d:tt) $screen: expr) => {
         macro_rules! println {
                                             ($d($tt: tt)*) => {
+                                                $screen.clear();
                                                 $screen.write_fmt(format_args!($d($tt)*)).ok();
                                                 $screen.write_raw("\n");
                                                 $screen.update();
                                             };
                                         }
 
-        macro_rules! writeln {
+        macro_rules! hex {
                                             ($d($tt: tt)*) => {
-                                                $screen.write_fmt(format_args!($d($tt)*)).ok();
-                                                $screen.write_raw("\n");
-                                            };
-                                        }
-
-        macro_rules! hexdump {
-                                            ($d($tt: tt)*) => {
-                                                $screen.hexdump($d($tt)*).update();
+                                                $screen.hexdump($d($tt)*);
                                             };
                                         }
 
         macro_rules! print {
                                                 ($d($tt: tt)*) => {
+                                                    $screen.clear();
                                                     $screen.write_fmt(format_args!($d($tt)*)).ok();
                                                     $screen.update();
                                                 };
                                         }
 
-        macro_rules! write {
+        macro_rules! offset {
                                             ($d($tt: tt)*) => {
-                                                $screen.write_fmt(format_args!($d($tt)*)).ok();
+                                                $screen.set_offset($d($tt)*);
                                             };
                                         }
 
-        macro_rules! offset {
-            ($d($tt: tt)*) => {
-                $screen.set_offset($d($tt)*);
-            };
-        }
-
         macro_rules! cur {
-            ($d($tt: tt)*) => {
-                $screen.set_cur($d($tt)*);
+                                            ($d($tt: tt)*) => {
+                                                $screen.set_cur($d($tt)*);
+                                            };
+                                        }
+
+        macro_rules! draw {
+                                            (fmtln $d($tt: tt)*) => {
+                                                $screen.write_fmt(format_args!($d($tt)*)).ok();
+                                                $screen.write("\n");
+                                            };
+
+                                            (fmt $d($tt:tt)*) => {
+                                                $screen.write_fmt(format_args!($d($tt)*)).ok();
+                                            };
+
+                                            (txt $d($tt: tt)*) => {
+                                                $screen.write($d($tt)*)
+                                            };
+
+                                            (blit $d($tt: tt)*) => {
+                                                $screen.buf().blit($d($tt)*);
+                                            };
+
+                                            ($d($tt: tt)*) => {
+                                                $screen.buf().draw($d($tt)*);
+                                            }
+                                        }
+
+        macro_rules! update {
+            () => {
+                $screen.update();
             };
         }
 
@@ -174,12 +216,5 @@ macro_rules! __use_screen {
                 $screen.clear().update();
             };
         }
-    };
-}
-
-#[macro_export]
-macro_rules! use_screen {
-    ($screen: expr) => {
-        rpio::__use_screen!(($) $screen)
     };
 }

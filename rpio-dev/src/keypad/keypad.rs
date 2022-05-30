@@ -50,4 +50,11 @@ pub trait Keypad {
     ///
     /// ```
     fn read_multi(&mut self) -> Option<Keys>;
+
+    fn read_keyup(&mut self) -> Option<u8> {
+        self.read().map(|key| {
+            while self.key_is_pressed() {}
+            key
+        })
+    }
 }
