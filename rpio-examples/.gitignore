@@ -1,5 +1,0 @@
-src
-.vscode
-.cargo
-memory.x
-./src/screen.rs
