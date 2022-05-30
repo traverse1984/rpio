@@ -147,7 +147,7 @@ macro_rules! __use_screen {
                                             ($d($tt: tt)*) => {
                                                 $screen.clear();
                                                 $screen.write_fmt(format_args!($d($tt)*)).ok();
-                                                $screen.write_raw("\n");
+                                                $screen.write("\n");
                                                 $screen.update();
                                             };
                                         }

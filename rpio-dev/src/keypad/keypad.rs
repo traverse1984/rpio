@@ -1,3 +1,4 @@
+use super::seq::KeySeqIter;
 use super::Keys;
 
 pub trait Keypad {
@@ -57,4 +58,8 @@ pub trait Keypad {
             key
         })
     }
+
+    fn read_seq<'a, 'b>(&'a mut self, buf: &'b mut [u8]) -> KeySeqIter<'a, 'b, Self>
+    where
+        Self: Sized;
 }

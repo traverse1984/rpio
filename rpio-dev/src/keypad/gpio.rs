@@ -1,4 +1,4 @@
-use super::{Keypad, Keys};
+use super::{seq::KeySeqIter, Keypad, Keys};
 use embedded_hal::digital::v2::{InputPin, OutputPin};
 use rpio_gpio as rpio;
 
@@ -123,6 +123,10 @@ where
 
         self.reset();
         None
+    }
+
+    fn read_seq<'a, 'b>(&'a mut self, buf: &'b mut [u8]) -> KeySeqIter<'a, 'b, Self> {
+        KeySeqIter::new(self, buf)
     }
 
     fn read_multi(&mut self) -> Option<Keys> {
