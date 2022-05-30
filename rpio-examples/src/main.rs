@@ -157,6 +157,9 @@ fn main() -> ! {
         Program::Adc,
         Program::Pwm,
         Program::KeySeq,
+        Program::Interrupt,
+        Program::ReadIrq,
+        Program::Draw,
     ];
 
     for (i, program) in programs.iter().enumerate().take(8) {
@@ -201,5 +204,8 @@ fn main() -> ! {
             programs::pwm(io, pwm_slices, pins.gpio22);
         }
         Program::KeySeq => programs::keyseq(io),
+        Program::Interrupt => loop {}, //programs::interrupt(io, led, btna),
+        Program::ReadIrq => programs::read_irq(io, btnb, btna),
+        Program::Draw => programs::draw(io),
     }
 }

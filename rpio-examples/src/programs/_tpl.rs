@@ -1,6 +1,6 @@
 use crate::io::*;
 
-pub fn adc<S, D, K, AdcChannel>(io: Io<S, D, K>) -> !
+pub fn adc<S, D, K>(io: Io<S, D, K>) -> !
 where
     S: SpiDevice,
     D: OutputPin,
