@@ -1,4 +1,5 @@
 mod ascii;
+mod bfb;
 mod fb;
 mod oled;
 mod print;

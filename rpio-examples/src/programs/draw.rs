@@ -29,6 +29,26 @@ where
     setup!(io => delay, screen: ScaledBuf::new(), keypad);
     offset!(0, 0);
 
+    let mut squares = [0b1010101010101010u16; 16];
+    for i in 0..16 {
+        if i % 4 > 1 {
+            squares[i] = !squares[i];
+        }
+    }
+
+    let squares = squares.map(|sq| enlarge(sq));
+
+    draw!(0, 0, &squares);
+    draw!(0, 16, &squares);
+    update!();
+
+    // for i in 0..32 {
+    //     screen.display().set_display_offset(i);
+    //     delay.delay_ms(200);
+    // }
+
+    loop {}
+
     let mut img = [0u64; 32];
     let mut img_ptr = 0;
     let mut seq = [0; 5];

@@ -63,6 +63,16 @@ macro_rules! pinout {
    };
 
    (
+       output readable { $($name: ident = $pin: expr),* $(,)? }
+       $($tail: tt)*
+   ) => {
+        $(
+            let mut $name = $pin.into_readable_output();
+        )*
+        $crate::pinout!($($tail)*)
+   };
+
+   (
       disabled floating { $($pin: expr),* $(,)? }
       $($tail: tt)*
    ) => {

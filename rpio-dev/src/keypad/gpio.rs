@@ -5,10 +5,10 @@ use rpio_gpio as rpio;
 /// A keypad implemented using eight GPIO pins.
 pub struct GpioKeypad<C1, C2, C3, C4, R1, R2, R3, R4>
 where
-    C1: OutputPin,
-    C2: OutputPin,
-    C3: OutputPin,
-    C4: OutputPin,
+    C1: OutputPin + InputPin,
+    C2: OutputPin + InputPin,
+    C3: OutputPin + InputPin,
+    C4: OutputPin + InputPin,
     R1: InputPin,
     R2: InputPin,
     R3: InputPin,
@@ -27,10 +27,10 @@ where
 
 impl<C1, C2, C3, C4, R1, R2, R3, R4> GpioKeypad<C1, C2, C3, C4, R1, R2, R3, R4>
 where
-    C1: OutputPin,
-    C2: OutputPin,
-    C3: OutputPin,
-    C4: OutputPin,
+    C1: OutputPin + InputPin,
+    C2: OutputPin + InputPin,
+    C3: OutputPin + InputPin,
+    C4: OutputPin + InputPin,
     R1: InputPin,
     R2: InputPin,
     R3: InputPin,
@@ -94,10 +94,10 @@ where
 
 impl<C1, C2, C3, C4, R1, R2, R3, R4> Keypad for GpioKeypad<C1, C2, C3, C4, R1, R2, R3, R4>
 where
-    C1: OutputPin,
-    C2: OutputPin,
-    C3: OutputPin,
-    C4: OutputPin,
+    C1: OutputPin + InputPin,
+    C2: OutputPin + InputPin,
+    C3: OutputPin + InputPin,
+    C4: OutputPin + InputPin,
     R1: InputPin,
     R2: InputPin,
     R3: InputPin,
@@ -107,6 +107,7 @@ where
         rpio::read!(any true; self.row4, self.row3, self.row2, self.row1)
     }
 
+    #[inline(never)]
     fn read(&mut self) -> Option<u8> {
         if !self.key_is_pressed() {
             return None;

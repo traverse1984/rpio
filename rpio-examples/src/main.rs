@@ -59,7 +59,7 @@ fn main() -> ! {
 
     let mut keypad = {
         pinout!(
-            output {
+            output readable {
                 col1 = pins.gpio0,
                 col2 = pins.gpio1,
                 col3 = pins.gpio2,
@@ -149,6 +149,12 @@ fn main() -> ! {
         }
     );
 
+    if let Some(_) = keypad.read() {
+        keypad.read_keyup();
+    } else {
+        programs::draw(Io::new(delay, oled, keypad));
+    }
+
     let mut screen = screen!(oled);
 
     let programs = [
@@ -172,19 +178,17 @@ fn main() -> ! {
     screen.update();
 
     let selection = loop {
-        if keypad.key_is_pressed() {
-            match keypad.read() {
-                Some(key @ 1..=8) => {
-                    while keypad.key_is_pressed() {}
-                    match programs.get(key as usize - 1) {
-                        Some(program) => {
-                            break *program;
-                        }
-                        _ => (),
+        match keypad.read() {
+            Some(key @ 1..=8) => {
+                while keypad.key_is_pressed() {}
+                match programs.get(key as usize - 1) {
+                    Some(program) => {
+                        break *program;
                     }
+                    _ => (),
                 }
-                _ => (),
             }
+            _ => (),
         }
     };
 
