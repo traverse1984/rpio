@@ -49,6 +49,8 @@ where
 
                 if len > 0 {
                     clear!();
+                    print!("Len {}", len);
+                    cur!(4, 12);
                     hex!(&dbuf[0..len]);
                     update!();
                 } else {
@@ -58,9 +60,11 @@ where
             Some(0xC) => {
                 cortex_m::interrupt::free(|cs| {
                     let mut buf = BUF.borrow(cs).borrow_mut();
-                    if let State::Overflow = buf.state {
-                        buf.state = State::ClearOverflow;
-                    }
+                    buf.reset();
+                    dbuf.fill(0);
+                    // if let State::Overflow = buf.state {
+                    //     buf.state = State::ClearOverflow;
+                    // }
                 });
 
                 print!("Cleared");
@@ -131,14 +135,10 @@ fn IO_IRQ_BANK0() {
         cortex_m::interrupt::free(|cs| {
             let mut buf = BUF.borrow(cs).borrow_mut();
 
-            if let State::ClearOverflow = buf.state {
-                buf.reset();
-            }
-
             if let State::Ok = buf.state {
                 buf.curr = (buf.curr << 1) | data.is_low().unwrap() as u8;
 
-                if buf.curr_idx == 6 {
+                if buf.curr_idx == 7 {
                     if buf.len <= buf.buf.len() {
                         let (len, curr) = (buf.len, buf.curr);
                         buf.buf[len] = curr;
@@ -149,9 +149,9 @@ fn IO_IRQ_BANK0() {
                     } else {
                         buf.state = State::Overflow;
                     }
+                } else {
+                    buf.curr_idx += 1;
                 }
-
-                buf.curr_idx += 1;
             }
         });
 

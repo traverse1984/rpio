@@ -11,9 +11,11 @@ cortex-m-rt = "0.7.1"
 cortex-m = "0.7.4"
 embedded-hal = "0.2.7"
 embedded-time = "0.12.1"
-rp-pico = "0.2.0"
-rp2040-hal = "0.3.0"
+rp-pico = "0.3.0"
+rp2040-hal = "0.4.0"
 rpio = { path = "../rpio", features = ["rp2040", "spi", "flash"] }
+#pio = "0.1.0"
+#pio-proc = "0.1"
 
 [build]
 target = "thumbv6m-none-eabi" 

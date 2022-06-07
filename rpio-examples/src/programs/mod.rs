@@ -3,6 +3,7 @@ mod flash;
 //mod interrupt;
 mod draw;
 mod multikey;
+mod pio;
 mod pwm;
 mod read_irq;
 mod seq;
@@ -10,6 +11,7 @@ mod seq;
 pub use adc::adc;
 pub use flash::flash;
 //pub use interrupt::interrupt;
+pub use self::pio::pio;
 pub use draw::draw;
 pub use multikey::multikey;
 pub use pwm::pwm;
@@ -26,6 +28,7 @@ pub enum Program {
     Interrupt,
     ReadIrq,
     Draw,
+    Pio,
 }
 
 impl Program {
@@ -41,6 +44,7 @@ impl Program {
             Interrupt => "Interrupt",
             ReadIrq => "Read IRQ",
             Draw => "Draw",
+            Pio => "Pio Example",
         }
     }
 }

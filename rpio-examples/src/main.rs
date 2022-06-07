@@ -49,9 +49,7 @@ fn main() -> ! {
     .ok()
     .unwrap();
 
-    rpio::dev::delay::Delay::init(core.SYST, clocks.system_clock.freq().integer());
-
-    let mut delay = rpio::dev::delay::Delay;
+    let mut delay = Delay::new(core.SYST, clocks.system_clock.freq().integer());
 
     let sio = Sio::new(pac.SIO);
     let pins = Pins::new(
@@ -167,7 +165,7 @@ fn main() -> ! {
         Program::Adc,
         Program::Pwm,
         Program::KeySeq,
-        Program::Interrupt,
+        Program::Pio,
         Program::ReadIrq,
         Program::Draw,
     ];
@@ -209,8 +207,22 @@ fn main() -> ! {
             programs::pwm(io, pwm_slices, pins.gpio22);
         }
         Program::KeySeq => programs::keyseq(io),
-        Program::Interrupt => loop {}, //programs::interrupt(io, led, btna),
         Program::ReadIrq => programs::read_irq(io, btnb, btna),
         Program::Draw => programs::draw(io),
+        Program::Pio => {
+            let (mut pio, sm0, _, _, _) = pac.PIO0.split(&mut pac.RESETS);
+            programs::pio(io, btnb.into_pull_down_disabled(), pio, sm0);
+        }
+        _ => {
+            led.set_low().unwrap();
+            let (mut delay, oled, ..) = io.take();
+            let mut screen = screen!(oled);
+
+            screen.write("Not available");
+            screen.update();
+            loop {
+                delay.delay_ms(1000);
+            }
+        }
     }
 }

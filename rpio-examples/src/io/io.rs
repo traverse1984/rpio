@@ -1,5 +1,5 @@
 pub use rpio::{
-    dev::{delay::Delay, pico_oled::*, screen, use_screen},
+    dev::{pico_oled::*, screen, use_screen},
     flash::*,
     spi::SpiDevice,
     OutputPin,
@@ -9,7 +9,7 @@ pub use embedded_hal::blocking::delay::*;
 
 pub use crate::keypad::*;
 
-//use cortex_m::delay::Delay;
+use cortex_m::delay::Delay;
 
 pub struct Io<S: SpiDevice, D: OutputPin, K: Keypad> {
     delay: Delay,
