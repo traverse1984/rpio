@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 embedded-hal = { version = "0.2.7", features = ["unproven"] }
+cortex-m = "0.7.4"
 rpio-gpio = { path = "../rpio-gpio" }
 rpio-spi = { path = "../rpio-spi" }
 

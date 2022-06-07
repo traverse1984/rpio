@@ -22,7 +22,9 @@ use embedded_hal::PwmPin;
 
 use embedded_hal::digital::v2::OutputPin;
 
-use rpio::{keypad::*, pico_oled::*, pinout, screen, spi::Spi, use_screen};
+mod keypad;
+use keypad::*;
+use rpio::{pico_oled::*, pinout, screen, spi::Spi, use_screen};
 
 mod io;
 mod programs;
@@ -47,7 +49,9 @@ fn main() -> ! {
     .ok()
     .unwrap();
 
-    let mut delay = Delay::new(core.SYST, clocks.system_clock.freq().integer());
+    rpio::dev::delay::Delay::init(core.SYST, clocks.system_clock.freq().integer());
+
+    let mut delay = rpio::dev::delay::Delay;
 
     let sio = Sio::new(pac.SIO);
     let pins = Pins::new(
@@ -149,11 +153,11 @@ fn main() -> ! {
         }
     );
 
-    if let Some(_) = keypad.read() {
-        keypad.read_keyup();
-    } else {
-        programs::draw(Io::new(delay, oled, keypad));
-    }
+    // if let Some(_) = keypad.read() {
+    //     keypad.read_keyup();
+    // } else {
+    //     programs::draw(Io::new(delay, oled, keypad));
+    // }
 
     let mut screen = screen!(oled);
 
@@ -178,16 +182,13 @@ fn main() -> ! {
     screen.update();
 
     let selection = loop {
-        match keypad.read() {
-            Some(key @ 1..=8) => {
-                while keypad.key_is_pressed() {}
-                match programs.get(key as usize - 1) {
-                    Some(program) => {
-                        break *program;
-                    }
-                    _ => (),
+        match keypad.read_keyup() {
+            Some(key @ 1..=8) => match programs.get(key as usize - 1) {
+                Some(program) => {
+                    break *program;
                 }
-            }
+                _ => (),
+            },
             _ => (),
         }
     };

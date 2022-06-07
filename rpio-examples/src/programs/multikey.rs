@@ -8,22 +8,28 @@ where
 {
     setup!(io => delay, screen: ScaledBuf::new(), keypad);
 
-    loop {
-        clear!();
+    loop {}
 
-        match keypad.read_multi() {
-            Some(keys) => {
-                cur!(5, 13);
-                hex!(&keys.as_array().map(|key| key.unwrap_or(0xFF)));
-            }
-            _ => {
-                cur!(12, 13);
-                draw!(fmt "Waiting");
-            }
-        };
+    // loop {
+    //     clear!();
 
-        update!();
+    //     match keypad.read_delayed(&mut delay) {
+    //         Some(key) => {
+    //             cur!(5, 13);
+    //             draw!(fmt "{:0x}", key);
+    //         }
+    //         _ => {
+    //             cur!(12, 13);
+    //             if keypad.key_is_pressed() {
+    //                 draw!(fmt "Keydown");
+    //             } else {
+    //                 draw!(fmt "Waiting");
+    //             }
+    //         }
+    //     };
 
-        delay.delay_ms(100);
-    }
+    //     update!();
+
+    //     delay.delay_ms(100);
+    // }
 }

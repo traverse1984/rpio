@@ -83,6 +83,10 @@ impl<SPI: SpiDevice, B: FlashBuffer> Device<SPI, B> {
         Ok(&self.buf.data()[..len])
     }
 
+    pub fn read_to_sector_end(&mut self, addr: u32) -> Result<&[u8]> {
+        self.read(addr, 4096 - (addr & 0xFFF) as usize)
+    }
+
     pub fn wait_ready(&mut self) -> Result {
         while self.read_status()?.is_busy() {}
         Ok(())

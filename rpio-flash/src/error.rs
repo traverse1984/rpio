@@ -7,4 +7,5 @@ pub enum Error {
     SPISetClockSpeed,
     FlashSizeNotSupported,
     AddressOutOfRange,
+    SectorOutOfRange,
 }

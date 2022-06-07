@@ -29,30 +29,31 @@ where
     setup!(io => delay, screen: ScaledBuf::new(), keypad);
     offset!(0, 0);
 
-    let mut squares = [0b1010101010101010u16; 16];
-    for i in 0..16 {
-        if i % 4 > 1 {
-            squares[i] = !squares[i];
-        }
-    }
-
-    let squares = squares.map(|sq| enlarge(sq));
-
-    draw!(0, 0, &squares);
-    draw!(0, 16, &squares);
-    update!();
-
-    // for i in 0..32 {
-    //     screen.display().set_display_offset(i);
-    //     delay.delay_ms(200);
+    // let mut squares = [0b1010101010101010u16; 16];
+    // for i in 0..16 {
+    //     if i % 4 > 1 {
+    //         squares[i] = !squares[i];
+    //     }
     // }
 
-    loop {}
+    // let squares = squares.map(|sq| enlarge(sq));
 
-    let mut img = [0u64; 32];
+    // draw!(0, 0, &squares);
+    // draw!(0, 16, &squares);
+    // update!();
+
+    let mut img = [0xFF000000000000FFu64; 32];
     let mut img_ptr = 0;
     let mut seq = [0; 5];
     let mut idx = 0;
+
+    let mut hexin = false;
+    let mut hexval: u16 = 0;
+
+    let mut del = false;
+
+    draw!(0, 0, &img);
+    update!();
 
     loop {
         let mut display_input = false;
@@ -60,11 +61,68 @@ where
 
         match keypad.read_keyup() {
             Some(0xF) => {
-                img.fill(0);
+                img.fill(0xFF000000000000FF);
                 img_ptr = 0;
                 display_image = true;
             }
+
+            Some(0xB) if img_ptr > 0 && idx == 0 && !hexin => {
+                if del {
+                    img[img_ptr - 1] = 0xFF000000000000FFu64;
+                    img[img_ptr - 2] = 0xFF000000000000FFu64;
+                    del = false;
+                    img_ptr -= 2;
+                    display_image = true;
+                } else {
+                    del = true;
+                    continue;
+                }
+            }
+
             _ if img_ptr == 32 => (),
+
+            Some(_) if del => {
+                del = false;
+                continue;
+            }
+
+            Some(0xA) if hexin => {
+                clear!();
+                offset!(10, 12);
+                draw!(txt "HEX");
+                update!();
+
+                for i in (0u8..4).rev() {
+                    let key = loop {
+                        match keypad.read_keyup() {
+                            Some(k) => break k,
+                            None => (),
+                        }
+                    };
+
+                    hexval = hexval | ((key as u16) << (i * 4));
+                    print!("{:04x}", hexval);
+                }
+
+                offset!(0, 0);
+                img[img_ptr] = enlarge(hexval);
+                img[img_ptr + 1] = enlarge(hexval);
+                img_ptr += 2;
+                display_image = true;
+                hexval = 0;
+            }
+
+            Some(_) if hexin => {
+                hexin = false;
+                continue;
+            }
+
+            Some(0xA) if idx == 0 => {
+                hexin = true;
+                delay.delay_ms(150);
+                continue;
+            }
+
             Some(0xC) => {
                 idx = 0;
                 seq.fill(0);

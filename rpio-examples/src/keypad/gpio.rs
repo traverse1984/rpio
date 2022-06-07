@@ -1,6 +1,6 @@
 use super::{seq::KeySeqIter, Keypad, Keys};
+use cortex_m::delay::Delay;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
-use rpio_gpio as rpio;
 
 /// A keypad implemented using eight GPIO pins.
 pub struct GpioKeypad<C1, C2, C3, C4, R1, R2, R3, R4>
@@ -135,6 +135,25 @@ where
                         return Some(key);
                     }
                 }
+            }
+        }
+
+        self.reset();
+        None
+    }
+
+    fn read_delayed(&mut self, delay: &mut Delay) -> Option<u8> {
+        if !self.key_is_pressed() {
+            return None;
+        }
+
+        for pos in 0..4 {
+            rpio::write!(self.col4, self.col3, self.col2, self.col1 => 4 bit => 1 << pos);
+
+            //delay.delay_us(500);
+            if let Some(key) = self.read_key(pos) {
+                self.reset();
+                return Some(key);
             }
         }
 
